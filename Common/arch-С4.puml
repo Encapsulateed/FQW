@@ -1,0 +1,39 @@
+@startuml
+!include <C4/C4_Container>
+
+LAYOUT_TOP_DOWN()
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam backgroundColor White
+skinparam ArrowColor #2F4F4F
+skinparam ArrowThickness 2
+
+Person(geo_user, "Геолог", "Специалист, использующий приложение для построения профилей местности")
+
+System_Boundary(geo_app, "Геологическое приложение") {
+    Container(mobile_app, "Мобильное приложение", "Flutter", "Интерактивное построение профилей местности")
+}
+
+System_Boundary(server_side, "Серверная часть") {
+    Container(web_api, "REST API", "ASP.NET Core", "Обрабатывает запросы и строит профили местности")
+    Container(auth_service, "Аутентификация", "Identity Server", "Обеспечивает вход в систему и права доступа")
+}
+
+System_Boundary(db_layer, "Хранилище данных") {
+    ContainerDb(database, "База данных", "PostgreSQL", "Хранит данные о рельефе и профилях")
+}
+
+System_Boundary(ext_services, "Внешние сервисы") {
+    Container_Ext(geo_api, "Геоданные API", "OpenTopoData", "Предоставляет высотные данные")
+    Container_Ext(map_api, "Картографический API", "Google Maps / OSM", "Отображение карт и рельефа")
+}
+
+
+geo_user -down-> mobile_app : Использует приложение
+mobile_app -down-> web_api : HTTPS-запросы
+web_api -down-> auth_service : Проверка аутентификации
+web_api -down-> database : Чтение/запись профилей
+auth_service -down-> database : Хранение пользователей
+web_api -down-> geo_api : Получение высотных данных
+web_api -down-> map_api : Загрузка картографических слоёв
+@enduml
