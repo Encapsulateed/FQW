@@ -1,0 +1,125 @@
+@startuml
+left to right direction
+skinparam linetype ortho
+skinparam roundcorner 5
+hide methods
+hide stereotypes
+
+entity "Users" as U {
+  * id : UUID
+  --
+  email : TEXT
+  password_hash : TEXT
+  role : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Logs" as LG {
+  * id : UUID
+  --
+  user_id : UUID
+  action : TEXT
+  timestamp : TIMESTAMP
+  metadata : JSONB
+  updated_at : TIMESTAMP
+}
+
+entity "Location_Users" as LU {
+  * location_id : UUID
+  * user_id : UUID
+  --
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Locations" as L {
+  * id : UUID
+  --
+  name : TEXT
+  description : TEXT
+  geometry : GEOMETRY(POLYGON, 4326)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Isolines" as I {
+  * id : UUID
+  --
+  location_id : UUID
+  elevation : DOUBLE PRECISION
+  geometry : GEOMETRY(LINESTRING, 4326)
+  source : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Terrain_Profiles" as TP {
+  * id : UUID
+  --
+  location_id : UUID
+  created_by : UUID
+  name : TEXT
+  description : TEXT
+  geometry : GEOMETRY(LINESTRING, 4326)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Profile_Edits" as PE {
+  * id : UUID
+  --
+  profile_id : UUID
+  user_id : UUID
+  edit_type : TEXT
+  change_description : TEXT
+  timestamp : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Reports" as R {
+  * id : UUID
+  --
+  profile_id : UUID
+  report_type : TEXT
+  file_path : TEXT
+  user_id : UUID
+  generated_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Profile_Requests" as PR {
+  * id : UUID
+  --
+  user_id : UUID
+  location_id : UUID
+  sampling_interval : DOUBLE PRECISION
+  profile_mode : TEXT
+  status : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  completed_at : TIMESTAMP
+}
+
+U -[hidden]-> LU
+LU -[hidden]-> L
+L -[hidden]-> I
+L -[hidden]-> TP
+TP -[hidden]-> PR
+TP -[hidden]-> PE
+TP -[hidden]-> R
+U -[hidden]-> LG
+
+U ||--o{ LU : "participates in"
+LU }|--|| L : "assigned to"
+L ||--o{ I : "contains"
+L ||--o{ TP : "has"
+L ||--o{ PR : "profile requested for"
+U ||--o{ PR : "initiates"
+U ||--o{ TP : "creates"
+TP ||--o{ PE : "modified by"
+U ||--o{ PE : "edits"
+TP ||--o{ R : "basis for"
+U ||--o{ R : "generates"
+U ||--o{ LG : "creates log"
+@enduml
