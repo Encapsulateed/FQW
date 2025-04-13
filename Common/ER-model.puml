@@ -1,0 +1,96 @@
+@startuml
+' Настраиваем прямые (ортогональные) линии
+skinparam linetype ortho
+
+' Обозначения для атрибутов
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <b>x</b>
+
+' Сущность Users с атрибутами
+entity "Users" as Users {
+    primary_key(id) : UUID
+    email : TEXT
+    password_hash : TEXT
+    role : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' Сущность Locations с атрибутами
+entity "Locations" as Locations {
+    primary_key(id) : UUID
+    name : TEXT
+    description : TEXT
+    geometry : GEOMETRY(POLYGON, 4326)
+    foreign_key(created_by) : UUID
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' Сущность Isolines с атрибутами
+entity "Isolines" as Isolines {
+    primary_key(id) : UUID
+    foreign_key(location_id) : UUID
+    elevation : DOUBLE PRECISION
+    geometry : GEOMETRY(LINESTRING, 4326)
+    source : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' Сущность Terrain Profiles с атрибутами
+entity "Terrain Profiles" as TerrainProfiles {
+    primary_key(id) : UUID
+    foreign_key(location_id) : UUID
+    name : TEXT
+    description : TEXT
+    geometry : GEOMETRY(LINESTRING, 4326)
+    foreign_key(created_by) : UUID
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' Сущность Profile Edits с атрибутами
+entity "Profile Edits" as ProfileEdits {
+    primary_key(id) : UUID
+    foreign_key(profile_id) : UUID
+    foreign_key(user_id) : UUID
+    edit_type : TEXT
+    change_description : TEXT
+    timestamp : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' Сущность Reports с атрибутами
+entity "Reports" as Reports {
+    primary_key(id) : UUID
+    foreign_key(profile_id) : UUID
+    report_type : TEXT
+    file_path : TEXT
+    foreign_key(generated_by) : UUID
+    generated_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' Сущность Logs с атрибутами
+entity "Logs" as Logs {
+    primary_key(id) : UUID
+    foreign_key(user_id) : UUID
+    action : TEXT
+    timestamp : TIMESTAMP
+    metadata : JSONB
+    updated_at : TIMESTAMP
+}
+
+' Определяем связи между сущностями (в ER-нотации с "crow's foot")
+Users ||--o{ Locations : "создаёт"
+Locations ||--o{ Isolines : "содержит"
+Locations ||--o{ TerrainProfiles : "ассоциирована с"
+Users ||--o{ TerrainProfiles : "создаёт"
+Users ||--o{ ProfileEdits : "редактирует"
+TerrainProfiles ||--o{ ProfileEdits : "меняется через"
+Users ||--o{ Reports : "генерирует"
+TerrainProfiles ||--o{ Reports : "отображается в"
+Users ||--o{ Logs : "регистрирует"
+
+@enduml
